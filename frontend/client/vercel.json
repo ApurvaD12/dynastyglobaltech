@@ -12,5 +12,4 @@
       "dest": "/dist/$1"
     }
   ]
-}</content>
-<parameter name="filePath">c:\Users\Admin\Desktop\KiroFS\dgt-app-v2\backend\vercel.json
+}

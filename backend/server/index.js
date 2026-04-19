@@ -8,7 +8,17 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
 
-app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'], credentials: true }));
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3002',
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+    ];
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
@@ -23,13 +33,18 @@ app.get('/api/health', (req, res) => res.json({ status: 'OK', message: 'DynastyG
 
 const PORT = process.env.PORT || 5000;
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(async () => {
-    console.log('✅ MongoDB Connected');
-    await require('./utils/seed')();
-    app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
-  })
-  .catch(err => {
+async function startServer() {
+  await mongoose.connect(process.env.MONGO_URI);
+  console.log('✅ MongoDB Connected');
+  await require('./utils/seed')();
+  app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+}
+
+if (require.main === module) {
+  startServer().catch(err => {
     console.error('❌ MongoDB connection error:', err.message);
     process.exit(1);
   });
+}
+
+module.exports = app;
